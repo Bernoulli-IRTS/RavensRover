@@ -1,0 +1,3 @@
+[submodule "thirdparty/Ada_Drivers_Library"]
+	path = thirdparty/Ada_Drivers_Library
+	url = https://github.com/aiunderstand/Ada_Drivers_Library
