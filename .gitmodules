@@ -1,3 +1,7 @@
 [submodule "thirdparty/Ada_Drivers_Library"]
 	path = thirdparty/Ada_Drivers_Library
 	url = https://github.com/aiunderstand/Ada_Drivers_Library
+[submodule "thirdparty/bb-runtimes"]
+	path = thirdparty/bb-runtimes
+	url = https://github.com/aiunderstand/bb-runtimes.git
+	branch = nrf52833

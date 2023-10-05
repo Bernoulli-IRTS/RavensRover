@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -16,10 +15,25 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: 'true'
-    - name: Set up GNAT toolchain
+
+    - name: Setup GNAT Community 2021 Toolchain
       run: >
-        sudo apt-get update &&
-        sudo apt-get install gnat gprbuild
+        sudo apt-get update && sudo apt-get install -y libx11-dev libx11-xcb-dev &&
+        wget -O gnat-arm-elf-linux64-bin https://community.download.adacore.com/v1/2ceb9d1ada2029d79556b710c6c4834cade3749f?filename=gnat-2021-20210519-arm-elf-linux64-bin &&
+        chmod +x ./gnat-arm-elf-linux64-bin &&
+        wget https://raw.githubusercontent.com/AdaCore/gnat_community_install_script/master/install_script.qs &&
+        sudo ./gnat-arm-elf-linux64-bin --script ./install_script.qs --platform minimal InstallPrefix=/opt/gnat &&
+        echo "/opt/gnat/bin" >> $GITHUB_PATH
+
+    - name: Setup nrf52833 bb-runtime
+      run: >
+        cd thirdparty/bb-runtimes && sudo PATH="$PATH:/opt/gnat/bin" python ./build_rts.py --output /opt/gnat/arm-eabi/lib/gnat --build nrf52833 --force
 
     - name: Build
-      run: gprbuild -j0 -p
+      run:  PATH="$PATH:/opt/gnat/bin" gprbuild -j0 -p
+
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v3
+      with:
+        name: main-elf
+        path: obj/main
