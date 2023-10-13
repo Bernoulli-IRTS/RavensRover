@@ -22,7 +22,7 @@ project RavensRover is
    end Builder;
 
    package Linker is
-      for Switches ("ada") use ("-g");
+      for Switches ("ada") use ("-g", "-Wl,--print-memory-usage");
    end Linker;
 
 end RavensRover;
