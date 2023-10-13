@@ -1,3 +1,4 @@
 {
-    "ada.projectFile": "RavensRover.gpr"
+    "ada.projectFile": "RavensRover.gpr",
+    "editor.formatOnSave": true
 }
