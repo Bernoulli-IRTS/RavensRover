@@ -1,4 +1,5 @@
 with MicroBit.TimeHighspeed; use MicroBit.TimeHighspeed;
+with Interrupts.GPIO;
 
 package body Drivers.HCSR04 is
    Current_Index : Integer := Trigger_Pins'First;
