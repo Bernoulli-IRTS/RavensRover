@@ -14,8 +14,8 @@ package body Drivers.HCSR04 is
    Distances   : DistancesArray := (others => Distance_cm'First);
    -- Keep track of if an echo failed during this loop
    Failed_Loop : Boolean        := False;
-   -- Sets true if there are successful reading
-   Working     : Boolean        := True;
+   -- Sets true if there are successful readings through a reading cycle
+   Working     : Boolean        := False;
    -- Don't fail the first one just because there is no previous trigger
    First       : Boolean        := True;
 
