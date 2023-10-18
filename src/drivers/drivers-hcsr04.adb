@@ -92,7 +92,7 @@ begin
 
       GPIO_Config.Mode         := Mode_Out;
       GPIO_Config.Resistors    := No_Pull;
-      GPIO_Config.Input_Buffer := Input_Buffer_Connect;
+      GPIO_Config.Input_Buffer := Input_Buffer_Disconnect;
       GPIO_Config.Sense        := Sense_Disabled;
       Pin.Trigger_Pin.Configure_IO (GPIO_Config);
    end loop;

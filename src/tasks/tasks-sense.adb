@@ -7,9 +7,12 @@ package body Tasks.Sense is
    -- Sense task body, trigging the HC-SR04 ultrasonic sensor
    task body Sense is
       package HCSR04Sensor is new Drivers.HCSR04
-        ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2)));
+      -- ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2))); -- First sensor
 
-      --  ((0 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13)));
+      -- ((0 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13))); -- Second sensor
+
+        ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2), -- Both
+          1 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13)));
    begin
       loop
          -- Trigger an ultrasonic sensor
@@ -27,9 +30,15 @@ package body Tasks.Sense is
            ("Distance 1: " &
             HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (0)));
 
-         --  Put_Line
-         --    ("Distance 2: " &
-         --     HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (1)));
+         -- Ignore if there is no sensor 1
+         begin
+            Put_Line
+              ("Distance 2: " &
+               HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (1)));
+         exception
+            when Constraint_Error =>
+               null;
+         end;
 
          Put_Line ("");
       end loop;
