@@ -1,7 +1,11 @@
-with Interfaces;   use Interfaces;
+with Ada.Text_IO;
+with Interfaces;       use Interfaces;
 with nRF.Events;
 with nRF.Interrupts;
-with NRF_SVD.GPIO; use NRF_SVD.GPIO;
+with NRF_SVD.GPIO;     use NRF_SVD.GPIO;
+with MicroBit.Console; use MicroBit.Console;
+
+with HAL;
 
 package body Interrupts.GPIO is
    type Pin_Pulse_Configurations is array (Pin_Index) of Pin_Pulse_Config;
@@ -57,6 +61,10 @@ package body Interrupts.GPIO is
               (if GPIO_Periph.PIN_CNF (P).SENSE = Low then Pulse_Falling
                else Pulse_Rising);
 
+            --  Put_Line
+            --    ("Handling edge " & Pulse_Edge'Image (edge) & " " &
+            --     Pin_Index'Image (I));
+
             -- Handle start of pulses
             if (edge = Pulse_Rising and pulse_high) or
               (edge = Pulse_Falling and not pulse_high)
@@ -95,11 +103,14 @@ package body Interrupts.GPIO is
       begin
          -- Disable interrupt handler in ISR
          nRF.Events.Disable_Interrupt (nRF.Events.GPIOTE_PORT);
+         nRF.Events.Clear (nRF.Events.GPIOTE_PORT);
 
          -- Get a copy of the interrupt latch reg
          latch_reg         := GPIO_Periph.LATCH;
          -- Reset latch register (writing to bit will reset)
          GPIO_Periph.LATCH := latch_reg;
+
+         Put_Line ("ISR");
 
          -- Loop through every GPIO pin in latch register
          for I in Pin_Index loop
@@ -108,6 +119,9 @@ package body Interrupts.GPIO is
 
             -- Check if bit for pin is set, and if so handle the edge
             if (Unsigned_32 (latch_reg.Val) and gpio_bit) /= 0 then
+               --  Put_Line
+               --    ("ISR " & Pin_Index'Image (I) & " Latch " &
+               --     HAL.UInt32'Image (latch_reg.Val));
                -- Handle the different pulse configurations
                case Pulse_Configurations (I) is
                   when Pulse_High =>
@@ -121,7 +135,6 @@ package body Interrupts.GPIO is
          end loop;
 
          -- Clear events and re-enable interrupt as the ISR is done
-         nRF.Events.Clear (nRF.Events.GPIOTE_PORT);
          nRF.Events.Enable_Interrupt (nRF.Events.GPIOTE_PORT);
       end ISR;
    end InterruptHandler;

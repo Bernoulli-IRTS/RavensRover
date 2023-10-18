@@ -6,23 +6,32 @@ with MicroBit.Console; use MicroBit.Console;
 package body Tasks.Sense is
    -- Sense task body, trigging the HC-SR04 ultrasonic sensor
    task body Sense is
-      package HCSR04Sensor is new Drivers.HCSR04 (MB_P0, (0 => MB_P1));
+      package HCSR04Sensor is new Drivers.HCSR04
+        ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2)));
+
+      --  ((0 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13)));
    begin
       loop
          -- Trigger an ultrasonic sensor
          HCSR04Sensor.Trigger;
          -- Delay 60ms
-         delay 0.06;
+         delay 1.0; --0.06;
 
          if HCSR04Sensor.Get_Working then
             Put_Line ("WORKING");
-
-            Put_Line
-              ("Distance: " &
-               HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (0)));
          else
             Put_Line ("Not working");
          end if;
+
+         Put_Line
+           ("Distance 1: " &
+            HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (0)));
+
+         --  Put_Line
+         --    ("Distance 2: " &
+         --     HCSR04Sensor.Distance_cm'Image (HCSR04Sensor.Get_Distance (1)));
+
+         Put_Line ("");
       end loop;
    end Sense;
 end Tasks.Sense;

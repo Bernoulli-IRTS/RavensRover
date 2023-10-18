@@ -2,15 +2,12 @@ with nRF.GPIO; use nRF.GPIO;
 
 -- HC-SR04 driver
 generic
-   --type TriggerPins is private; -- is array (Positive range <>) of GPIO_Point;
-   Echo_Pin : GPIO_Point;
-   Trigger_Pins : PinArray;
+   Pins : HCSR04Pins;
 package Drivers.HCSR04 is
    -- Range of measurements
    type Distance_cm is new Float range 0.0 .. 400.0;
 
-   type SensorIndex is
-     new Integer range Trigger_Pins'First .. Trigger_Pins'Last;
+   type SensorIndex is new Integer range Pins'First .. Pins'Last;
 
    -- Get the distance reading from sensor
    function Get_Distance (Sensor : SensorIndex) return Distance_cm;
