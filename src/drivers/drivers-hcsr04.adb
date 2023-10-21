@@ -1,5 +1,4 @@
 with Ada.Real_Time;          use Ada.Real_Time;
-with MicroBit.Console;       use MicroBit.Console;
 with MicroBit.TimeHighspeed; use MicroBit.TimeHighspeed;
 with Interrupts.GPIO;        use Interrupts.GPIO;
 
@@ -33,7 +32,7 @@ package body Drivers.HCSR04 is
       Trigger_Pin    : GPIO_Point := Pins (Current_Index).Trigger_Pin;
       -- Get the previous pulse
       Previous_Pulse : Pin_Pulse  :=
-        InterruptHandler.Get_Pulse (Pins (Current_Index).Echo_Pin);
+        InterruptHandler.Get_Pulse (Pins (Previous_Index).Echo_Pin);
       Distance       : Float;
    begin
       -- Check if the last measurement succeeded by timestamp, duration and if the edge is the correct one
@@ -58,8 +57,6 @@ package body Drivers.HCSR04 is
             Distances (Previous_Index) := Distance_cm (Distance);
          end if;
       end if;
-
-      Put_Line ("Trigger " & GPIO_Point'Image (Trigger_Pin));
 
       -- Trigger the trigger pin high
       Trigger_Pin.Set;
@@ -88,7 +85,7 @@ package body Drivers.HCSR04 is
 begin
    -- Configure trigger pin outputs
    for Pin of Pins loop
-      Configure_Pin (Pin.Echo_Pin, Pulse_High);
+      Configure_Interrupt_Pin (Pin.Echo_Pin, Pulse_High);
 
       GPIO_Config.Mode         := Mode_Out;
       GPIO_Config.Resistors    := No_Pull;

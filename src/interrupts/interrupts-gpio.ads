@@ -21,7 +21,8 @@ package Interrupts.GPIO is
    type Pin_Pulses is array (Pin_Index) of Pin_Pulse;
 
    -- Configure the kind of pulses the interrupt handler should detect on a pin
-   procedure Configure_Pin (Pin : GPIO_Point; Config : Pin_Pulse_Config);
+   procedure Configure_Interrupt_Pin
+     (Pin : GPIO_Point; Config : Pin_Pulse_Config);
 
    -- Protected interrupt handler for nRF GPIOTE interrupts
    protected InterruptHandler is

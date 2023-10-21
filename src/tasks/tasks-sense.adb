@@ -7,10 +7,6 @@ package body Tasks.Sense is
    -- Sense task body, trigging the HC-SR04 ultrasonic sensor
    task body Sense is
       package HCSR04Sensor is new Drivers.HCSR04
-      -- ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2))); -- First sensor
-
-      -- ((0 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13))); -- Second sensor
-
         ((0 => (Echo_Pin => MB_P0, Trigger_Pin => MB_P2), -- Both
           1 => (Echo_Pin => MB_P1, Trigger_Pin => MB_P13)));
    begin

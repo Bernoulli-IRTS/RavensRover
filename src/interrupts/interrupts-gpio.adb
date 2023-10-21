@@ -1,9 +1,9 @@
 with Ada.Text_IO;
-with Interfaces;       use Interfaces;
+with Interfaces;                use Interfaces;
 with nRF.Events;
+with nRF.GPIO.Tasks_And_Events; use nRF.GPIO;
 with nRF.Interrupts;
-with NRF_SVD.GPIO;     use NRF_SVD.GPIO;
-with MicroBit.Console; use MicroBit.Console;
+with NRF_SVD.GPIO;              use NRF_SVD.GPIO;
 
 with HAL;
 
@@ -13,7 +13,19 @@ package body Interrupts.GPIO is
    -- Keep track of the pin pulse configurations
    Pulse_Configurations : Pin_Pulse_Configurations := (others => Pulse_None);
 
-   procedure Configure_Pin (Pin : GPIO_Point; Config : Pin_Pulse_Config) is
+   type Pin_GPIOTE_Channels is
+     array (Pin_Index) of Tasks_And_Events.GPIOTE_Channel;
+
+   Pin_GPIOTE_Channel : Pin_GPIOTE_Channels :=
+     (others => Tasks_And_Events.GPIOTE_Channel'Last);
+
+   -- Just start top down
+   Next_GPIIOTE_Channel : Tasks_And_Events.GPIOTE_Channel :=
+     Tasks_And_Events.GPIOTE_Channel'Last;
+
+   procedure Configure_Interrupt_Pin
+     (Pin : GPIO_Point; Config : Pin_Pulse_Config)
+   is
       -- Get the pin index, technically this can out of range since GPIO_Pin_Index goes up to 47
       -- However the MicroBit pins should be within!
       I : Pin_Index := Pin_Index (Pin.Pin);
@@ -38,7 +50,20 @@ package body Interrupts.GPIO is
       end case;
 
       Pin.Configure_IO (GPIO_Config);
-   end Configure_Pin;
+
+      -- Allocate channel so we can ack
+      Pin_GPIOTE_Channel (I) := Next_GPIIOTE_Channel;
+
+      Tasks_And_Events.Enable_Event
+        (Chan     => Next_GPIIOTE_Channel, GPIO_Pin => Pin.Pin,
+         Polarity => Tasks_And_Events.Any_Change);
+
+      Tasks_And_Events.Enable_Channel_Interrupt (Next_GPIIOTE_Channel);
+
+      -- Decrement for next pin
+      Next_GPIIOTE_Channel :=
+        Tasks_And_Events.GPIOTE_Channel (Integer (Next_GPIIOTE_Channel) - 1);
+   end Configure_Interrupt_Pin;
 
    protected body InterruptHandler is
       function Get_Pulse (Pin : GPIO_Point) return Pin_Pulse is
@@ -50,54 +75,28 @@ package body Interrupts.GPIO is
       procedure ISR is
          latch_reg : LATCH_Register;
          gpio_bit  : Unsigned_32;
+         high      : Boolean;
 
          -- Handle edge of pulse
-         procedure Handle_Edge (I : Pin_Index; pulse_high : Boolean) is
-            edge : Pulse_Edge;
-            P : Integer := Integer (I); -- Just cast this here for convenience
+         procedure Handle_Edge (I : Pin_Index; edge_high : Boolean) is
+            is_start : Boolean;
+            edge     : Pulse_Edge;
          begin
-            -- Figure out the direction of the edge by looking at the GPIO sense register
-            edge :=
-              (if GPIO_Periph.PIN_CNF (P).SENSE = Low then Pulse_Falling
-               else Pulse_Rising);
+            edge := (if edge_high then Pulse_Rising else Pulse_Falling);
 
-            --  Put_Line
-            --    ("Handling edge " & Pulse_Edge'Image (edge) & " " &
-            --     Pin_Index'Image (I));
+            -- Find out if this is the starting edge
+            is_start := edge_high = (Pulse_Configurations (I) = Pulse_High);
 
             -- Handle start of pulses
-            if (edge = Pulse_Rising and pulse_high) or
-              (edge = Pulse_Falling and not pulse_high)
-            then
+            if (is_start) then
                -- Update pulse with start timestamp and edge direction
                Pulses (I).Timestamp := Clock;
                Pulses (I).Edge      := edge;
                Pulses (I).Duration  := Time_Span_Last;
-
-               -- Update sense pull + internal pull for detecting end of pulse
-               if pulse_high then
-                  GPIO_Periph.PIN_CNF (P).SENSE := Low;
-                  GPIO_Periph.PIN_CNF (P).PULL  := Pullup;
-               else
-                  GPIO_Periph.PIN_CNF (P).SENSE := High;
-                  GPIO_Periph.PIN_CNF (P).PULL  := Pulldown;
-               end if;
-               -- Handle end of pulses
-            elsif (edge = Pulse_Falling and pulse_high) or
-              (edge = Pulse_Rising and not pulse_high)
-            then
+            else
                -- End the pulse with a duration
                Pulses (I).Duration := Clock - Pulses (I).Timestamp;
                Pulses (I).Edge     := edge;
-
-               -- Update sense pull + internal pull for detecting start of pulse
-               if pulse_high then
-                  GPIO_Periph.PIN_CNF (P).SENSE := High;
-                  GPIO_Periph.PIN_CNF (P).PULL  := Pulldown;
-               else
-                  GPIO_Periph.PIN_CNF (P).SENSE := Low;
-                  GPIO_Periph.PIN_CNF (P).PULL  := Pullup;
-               end if;
             end if;
          end Handle_Edge;
       begin
@@ -110,8 +109,6 @@ package body Interrupts.GPIO is
          -- Reset latch register (writing to bit will reset)
          GPIO_Periph.LATCH := latch_reg;
 
-         Put_Line ("ISR");
-
          -- Loop through every GPIO pin in latch register
          for I in Pin_Index loop
             -- Find the mask for checking if the pin has met it's sense critea
@@ -119,18 +116,14 @@ package body Interrupts.GPIO is
 
             -- Check if bit for pin is set, and if so handle the edge
             if (Unsigned_32 (latch_reg.Val) and gpio_bit) /= 0 then
-               --  Put_Line
-               --    ("ISR " & Pin_Index'Image (I) & " Latch " &
-               --     HAL.UInt32'Image (latch_reg.Val));
-               -- Handle the different pulse configurations
-               case Pulse_Configurations (I) is
-                  when Pulse_High =>
-                     Handle_Edge (I, True);
-                  when Pulse_Low =>
-                     Handle_Edge (I, False);
-                  when Pulse_None =>
-                     null;
-               end case;
+               -- Acknowledge the channel interrupt
+               Tasks_And_Events.Acknowledge_Channel_Interrupt
+                 (Pin_GPIOTE_Channel (I));
+
+               -- Check if it ia high edge by reading the in register
+               high := (Unsigned_32 (GPIO_Periph.IN_k.Val) and gpio_bit) /= 0;
+
+               Handle_Edge (I, high);
             end if;
          end loop;
 
@@ -138,14 +131,4 @@ package body Interrupts.GPIO is
          nRF.Events.Enable_Interrupt (nRF.Events.GPIOTE_PORT);
       end ISR;
    end InterruptHandler;
-
-begin
-   -- Setup interrupt handler
-   nRF.Events.Disable_Interrupt (nRF.Events.GPIOTE_PORT);
-   GPIO_Periph.DETECTMODE.DETECTMODE := NRF_SVD.GPIO.Default;
-
-   -- Clear and enable GPIOTE events
-   nRF.Events.Clear (nRF.Events.GPIOTE_PORT);
-   nRF.Events.Enable_Interrupt (nRF.Events.GPIOTE_PORT);
-   nRF.Interrupts.Enable (nRF.Interrupts.GPIOTE_Interrupt);
 end Interrupts.GPIO;
