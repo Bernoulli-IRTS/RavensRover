@@ -1,3 +1,4 @@
+with Ada.Real_Time;  use Ada.Real_Time;
 with Drivers.HCSR04;
 with MicroBit.Types; use MicroBit.Types;
 use MicroBit;
@@ -5,8 +6,8 @@ with MicroBit.Console; use MicroBit.Console;
 
 package body Tasks.Sense is
    -- Indexes of sensors
-   Front_Right_Index : Integer := 0;
-   Front_Left_Index  : Integer := 0;
+   Front_Right_Index : constant := 0;
+   Front_Left_Index  : constant := 1;
    -- Setup sensor configuration
    package HCSR04Sensor is new Drivers.HCSR04
      (
