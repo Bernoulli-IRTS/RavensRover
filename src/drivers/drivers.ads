@@ -8,5 +8,7 @@ package Drivers is
 
    type HCSR04Pins is array (Integer range <>) of HCSR04Pin;
 
+   type HCSR04Distance is new Float range 0.0 .. 400.0;
+
    type PinArray is array (Integer range <>) of GPIO_Point;
 end Drivers;

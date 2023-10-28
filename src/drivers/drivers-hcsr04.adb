@@ -7,10 +7,10 @@ package body Drivers.HCSR04 is
    Previous_Index : Integer := Pins'First;
    Last_Trigger   : Time    := Time_First;
 
-   type DistancesArray is array (Pins'First .. Pins'Last) of Distance_cm;
+   type DistancesArray is array (Pins'First .. Pins'Last) of HCSR04Distance;
 
    -- Keep track of the pin pulse configurations
-   Distances   : DistancesArray := (others => Distance_cm'First);
+   Distances   : DistancesArray := (others => HCSR04Distance'First);
    -- Keep track of if an echo failed during this loop
    Failed_Loop : Boolean        := False;
    -- Sets true if there are successful readings through a reading cycle
@@ -18,7 +18,7 @@ package body Drivers.HCSR04 is
    -- Don't fail the first one just because there is no previous trigger
    First       : Boolean        := True;
 
-   function Get_Distance (Sensor : SensorIndex) return Distance_cm is
+   function Get_Distance (Sensor : SensorIndex) return HCSR04Distance is
    begin
       return Distances (Integer (Sensor));
    end Get_Distance;
@@ -51,10 +51,10 @@ package body Drivers.HCSR04 is
            (1_000_000.0 / 58.0);
 
          -- Update with new reading
-         if Distance > Float (Distance_cm'Last) then
-            Distances (Previous_Index) := Distance_cm'Last;
+         if Distance > Float (HCSR04Distance'Last) then
+            Distances (Previous_Index) := HCSR04Distance'Last;
          else
-            Distances (Previous_Index) := Distance_cm (Distance);
+            Distances (Previous_Index) := HCSR04Distance (Distance);
          end if;
       end if;
 
