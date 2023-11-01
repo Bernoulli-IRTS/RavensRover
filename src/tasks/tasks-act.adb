@@ -12,8 +12,16 @@ package body Tasks.Act is
    end Act;
 
    -- TODO make functions to set directions
-   -- set forward
-   -- set right
-   -- set rotation
+   procedure Set_Forward(Forward : Speed) is begin
+      null;
+   end Set_Forward;
+
+   procedure Set_Right(Right : Speed) is begin
+      null;
+   end Set_Right;
+
+   procedure Set_Rotation(Rotation : Speed) is begin
+     null;
+   end Set_Rotation;
 
 end Tasks.Act;
