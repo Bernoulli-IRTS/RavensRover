@@ -41,18 +41,21 @@ package body Tasks.Act is
          Right       := Integer (Right_Speed);
          Rotation    := Integer (Rotation_Speed);
          -- implementasjon
-         Denominator :=
-           (abs Forward + abs Right + abs Rotation) / Integer (Speed'Last);
+         Denominator := abs Forward + abs Right + abs Rotation;
 
          -- Ensure Denominator is at least 1
-         if Denominator < 1 then
-            Denominator := 1;
+         if Denominator < Integer (Speed'Last) then
+            Denominator := Integer (Speed'Last);
          end if;
 
-         Motor_Right_Front := (Forward - Right - Rotation) / Denominator;
-         Motor_Right_Back  := (Forward + Right - Rotation) / Denominator;
-         Motor_Left_Front  := (Forward + Right + Rotation) / Denominator;
-         Motor_Left_Back   := (Forward - Right + Rotation) / Denominator;
+         Motor_Right_Front :=
+           ((Forward - Right - Rotation) * Integer (Speed'Last)) / Denominator;
+         Motor_Right_Back  :=
+           ((Forward + Right - Rotation) * Integer (Speed'Last)) / Denominator;
+         Motor_Left_Front  :=
+           ((Forward + Right + Rotation) * Integer (Speed'Last)) / Denominator;
+         Motor_Left_Back   :=
+           ((Forward - Right + Rotation) * Integer (Speed'Last)) / Denominator;
 
          MotorDriver.Set_PWM_Wheels
            (Speed_To_Wheel (Motor_Right_Front),
