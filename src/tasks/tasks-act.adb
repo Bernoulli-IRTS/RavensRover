@@ -1,3 +1,5 @@
+with Ada.Real_Time;  use Ada.Real_Time;
+
 package body Tasks.Act is
    task body Act is
       Start : Time := Clock;
@@ -9,5 +11,9 @@ package body Tasks.Act is
       end loop;
    end Act;
 
-      -- TODO make functions to set directions
-end Tasks.Sense;
+   -- TODO make functions to set directions
+   -- set forward
+   -- set right
+   -- set rotation
+
+end Tasks.Act;
