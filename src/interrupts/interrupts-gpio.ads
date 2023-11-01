@@ -26,7 +26,7 @@ package Interrupts.GPIO is
 
    -- Protected interrupt handler for nRF GPIOTE interrupts
    protected InterruptHandler is
-      pragma Interrupt_Priority (System.Interrupt_Priority'First);
+      pragma Interrupt_Priority (250);
 
       function Get_Pulse (Pin : GPIO_Point) return Pin_Pulse;
    private
