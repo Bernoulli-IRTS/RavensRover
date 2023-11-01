@@ -5,9 +5,10 @@ with HAL;
 
 package body Tasks.Act is
    MotorDriver    : DFR0548.MotorDriver (MicroBit.I2C.ControllerExt);
-   Forward_Speed  : Speed := 0;
-   Right_Speed    : Speed := 0;
-   Rotation_Speed : Speed := 0;
+   Speed_Max      : constant := Integer (Speed'Last);
+   Forward_Speed  : Speed    := 0;
+   Right_Speed    : Speed    := 0;
+   Rotation_Speed : Speed    := 0;
 
    function Speed_To_Wheel (Speed : Integer) return DFR0548.Wheel is
    begin
@@ -17,15 +18,15 @@ package body Tasks.Act is
    end Speed_To_Wheel;
 
    task body Act is
-      Start             : Time    := Clock;
-      Denominator       : Integer := 0;
-      Forward           : Integer := 0;
-      Right             : Integer := 0;
-      Rotation          : Integer := 0;
-      Motor_Right_Front : Integer := 0;
-      Motor_Right_Back  : Integer := 0;
-      Motor_Left_Front  : Integer := 0;
-      Motor_Left_Back   : Integer := 0;
+      Start             : Time := Clock;
+      Denominator       : Integer;
+      Forward           : Integer;
+      Right             : Integer;
+      Rotation          : Integer;
+      Motor_Right_Front : Integer;
+      Motor_Right_Back  : Integer;
+      Motor_Left_Front  : Integer;
+      Motor_Left_Back   : Integer;
    begin
       -- Initialize motor driver
       if not MicroBit.I2C.InitializedExt then
@@ -43,19 +44,19 @@ package body Tasks.Act is
          -- implementasjon
          Denominator := abs Forward + abs Right + abs Rotation;
 
-         -- Ensure Denominator is at least 1
-         if Denominator < Integer (Speed'Last) then
-            Denominator := Integer (Speed'Last);
+         -- Ensure Denominator is at least Speed'Last (4095)
+         if Denominator < Speed_Max then
+            Denominator := Speed_Max;
          end if;
 
          Motor_Right_Front :=
-           ((Forward - Right - Rotation) * Integer (Speed'Last)) / Denominator;
+           ((Forward - Right - Rotation) * Speed_Max) / Denominator;
          Motor_Right_Back  :=
-           ((Forward + Right - Rotation) * Integer (Speed'Last)) / Denominator;
+           ((Forward + Right - Rotation) * Speed_Max) / Denominator;
          Motor_Left_Front  :=
-           ((Forward + Right + Rotation) * Integer (Speed'Last)) / Denominator;
+           ((Forward + Right + Rotation) * Speed_Max) / Denominator;
          Motor_Left_Back   :=
-           ((Forward - Right + Rotation) * Integer (Speed'Last)) / Denominator;
+           ((Forward - Right + Rotation) * Speed_Max) / Denominator;
 
          MotorDriver.Set_PWM_Wheels
            (Speed_To_Wheel (Motor_Right_Front),
@@ -82,4 +83,10 @@ package body Tasks.Act is
       Rotation_Speed := Rotation;
    end Set_Rotation;
 
+   procedure Stop is
+   begin
+      Forward_Speed  := 0;
+      Right_Speed    := 0;
+      Rotation_Speed := 0;
+   end Stop;
 end Tasks.Act;
