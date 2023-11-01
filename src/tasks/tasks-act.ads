@@ -2,7 +2,7 @@ package Tasks.Act is
   task Act with
    Priority => 2
   ;
-  type Speed is range -4_095 .. 4_095;
+  subtype Speed is Integer range -4_095 .. 4_095;
 
   procedure Set_Forward (Forward : Speed);
 
