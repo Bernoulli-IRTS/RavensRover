@@ -1,5 +1,6 @@
 with Tasks.Act;
 with Tasks.Sense;
+with Tasks.Think;
 
 -- Main procedure of RavensRover, it has the lowest priority and does nothing meaningful other than spinning so there is no reset
 procedure Main with
