@@ -5,3 +5,6 @@ obj
 
 # Ada Library Information
 *.ali
+
+# GNAT studio turds
+.#*
