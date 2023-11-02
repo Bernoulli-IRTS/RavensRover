@@ -6,6 +6,7 @@ with HAL;
 package body Tasks.Act is
    MotorDriver    : DFR0548.MotorDriver (MicroBit.I2C.ControllerExt);
    Speed_Max      : constant := Integer (Speed'Last);
+   Motor_Step     : constant := 100;
    Forward_Speed  : Speed    := 0;
    Right_Speed    : Speed    := 0;
    Rotation_Speed : Speed    := 0;
@@ -17,16 +18,27 @@ package body Tasks.Act is
          HAL.UInt12 (if Speed < 0 then (abs Speed) else 0));
    end Speed_To_Wheel;
 
+   procedure Step_Value (Value : in out Integer; To : Integer) is
+   begin
+      if To > Value + Motor_Step then
+         Value := Value + Motor_Step;
+      elsif To < Value - Motor_Step then
+         Value := Value - Motor_Step;
+      else
+         Value := To;
+      end if;
+   end Step_Value;
+
    task body Act is
-      Start             : Time := Clock;
+      Start             : Time;
       Denominator       : Integer;
       Forward           : Integer;
       Right             : Integer;
       Rotation          : Integer;
-      Motor_Right_Front : Integer;
-      Motor_Right_Back  : Integer;
-      Motor_Left_Front  : Integer;
-      Motor_Left_Back   : Integer;
+      Motor_Right_Front : Integer := 0;
+      Motor_Right_Back  : Integer := 0;
+      Motor_Left_Front  : Integer := 0;
+      Motor_Left_Back   : Integer := 0;
    begin
       -- Initialize motor driver
       if not MicroBit.I2C.InitializedExt then
@@ -49,14 +61,18 @@ package body Tasks.Act is
             Denominator := Speed_Max;
          end if;
 
-         Motor_Right_Front :=
-           ((Forward - Right - Rotation) * Speed_Max) / Denominator;
-         Motor_Right_Back  :=
-           ((Forward + Right - Rotation) * Speed_Max) / Denominator;
-         Motor_Left_Front  :=
-           ((Forward + Right + Rotation) * Speed_Max) / Denominator;
-         Motor_Left_Back   :=
-           ((Forward - Right + Rotation) * Speed_Max) / Denominator;
+         Step_Value
+           (Motor_Right_Front,
+            ((Forward - Right - Rotation) * Speed_Max) / Denominator);
+         Step_Value
+           (Motor_Right_Back,
+            ((Forward + Right - Rotation) * Speed_Max) / Denominator);
+         Step_Value
+           (Motor_Left_Front,
+            ((Forward + Right + Rotation) * Speed_Max) / Denominator);
+         Step_Value
+           (Motor_Left_Back,
+            ((Forward - Right + Rotation) * Speed_Max) / Denominator);
 
          MotorDriver.Set_PWM_Wheels
            (Speed_To_Wheel (Motor_Right_Front),
