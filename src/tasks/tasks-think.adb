@@ -8,27 +8,19 @@ package body Tasks.Think is
       Start : Time := Clock;
       Obstacle : Where_Obstacle;
    begin
-      -- Initial delay, decreases the chance of overcurrent from testing
+      -- Initial delay, seems to decrease the chance of triggering overcurrent
       delay(3.0);
       loop
          Start := Clock;
          Obstacle := Is_Obstacle_Ahead;
 
-         if Obstacle = Both then
-            Act.Set_Rotation(2_048);
-            delay(0.5);
-            Act.Stop;
-            delay(3.0);
-         elsif Obstacle = Left then
-            Act.Set_Rotation(2_048);
-            delay(0.5);
-            Act.Stop;
-            delay(3.0);
+         Act.Stop;
+         if Obstacle = Both or Obstacle = Left then
+            Act.Set_Rotation(1_024);
          elsif Obstacle = Right then
-            Act.Set_Rotation(-2_048);
-            delay(0.5);
-            Act.Stop;
-            delay(3.0);
+            Act.Set_Rotation(-1_024);
+         else
+            Act.Set_Forward(1_024);
          end if;
 
          delay until Start + Milliseconds (10);
@@ -50,5 +42,6 @@ package body Tasks.Think is
       end if;
       return None;
    end Is_Obstacle_Ahead;
+
 
 end Tasks.Think;
