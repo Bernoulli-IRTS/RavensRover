@@ -1,6 +1,6 @@
 package Tasks.Act is
    task Act with
-     Priority => 2
+     Priority => 3
    ;
    subtype Speed is Integer range -4_095 .. 4_095;
 

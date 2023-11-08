@@ -2,6 +2,7 @@ with Ada.Real_Time; use Ada.Real_Time;
 with MicroBit.I2C;
 with DFR0548;
 with HAL;
+with Profiler;
 
 package body Tasks.Act is
    MotorDriver    : DFR0548.MotorDriver (MicroBit.I2C.ControllerExt);
@@ -10,6 +11,9 @@ package body Tasks.Act is
    Forward_Speed  : Speed    := 0;
    Right_Speed    : Speed    := 0;
    Rotation_Speed : Speed    := 0;
+#if PROFILING
+   Trace          : Profiler.Trace;
+#end if;
 
    function Speed_To_Wheel (Speed : Integer) return DFR0548.Wheel is
    begin
@@ -49,7 +53,11 @@ package body Tasks.Act is
       MotorDriver.Set_Frequency_Hz (50); -- Set prescaler
 
       loop
-         Start       := Clock;
+         Start := Clock;
+#if PROFILING
+         Trace := Profiler.StartTrace ("Act", Start);
+#end if;
+
          Forward     := Integer (Forward_Speed);
          Right       := Integer (Right_Speed);
          Rotation    := Integer (Rotation_Speed);
@@ -79,6 +87,10 @@ package body Tasks.Act is
             Speed_To_Wheel (Motor_Right_Back),
             Speed_To_Wheel (Motor_Left_Front),
             Speed_To_Wheel (Motor_Left_Back));
+
+#if PROFILING
+         Profiler.EndTrace (Trace);
+#end if;
 
          delay until Start + Milliseconds (20);
       end loop;

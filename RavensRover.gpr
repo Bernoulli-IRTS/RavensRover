@@ -14,7 +14,7 @@ project RavensRover is
    end Ide;
 
    package Compiler is
-      for Switches ("ada") use ("-gnat2022", "-g");
+      for Switches ("ada") use ("-gnat2022", "-gnateDPROFILING=false", "-g");
    end Compiler;
 
    package Builder is

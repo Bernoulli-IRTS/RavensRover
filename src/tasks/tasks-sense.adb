@@ -2,7 +2,7 @@ with Ada.Real_Time;  use Ada.Real_Time;
 with Drivers.HCSR04;
 with MicroBit.Types; use MicroBit.Types;
 use MicroBit;
-with MicroBit.Console; use MicroBit.Console;
+with Profiler;
 
 package body Tasks.Sense is
    -- Indexes of sensors
@@ -19,11 +19,22 @@ package body Tasks.Sense is
    -- Sense task body, trigging the HC-SR04 ultrasonic sensor
    task body Sense is
       Start : Time := Clock;
+#if PROFILING
+      Trace : Profiler.Trace;
+#end if;
    begin
       loop
          Start := Clock;
+#if PROFILING
+         Trace := Profiler.StartTrace ("Sense", Start);
+#end if;
+
          -- Trigger an ultrasonic sensor
          HCSR04Sensor.Trigger;
+
+#if PROFILING
+         Profiler.EndTrace (Trace);
+#end if;
          -- Delay 60ms using delay until to reduce jitter
          delay until Start + Milliseconds (60);
       end loop;
