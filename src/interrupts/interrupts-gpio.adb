@@ -13,11 +13,15 @@ package body Interrupts.GPIO is
    -- Keep track of the pin pulse configurations
    Pulse_Configurations : Pin_Pulse_Configurations := (others => Pulse_None);
 
-   type Pin_GPIOTE_Channels is
-     array (Pin_Index) of Tasks_And_Events.GPIOTE_Channel;
+   type Pin_GPIOTE_Channel is record
+      Set  : Boolean;
+      Chan : Tasks_And_Events.GPIOTE_Channel;
+   end record;
 
-   Pin_GPIOTE_Channel : Pin_GPIOTE_Channels :=
-     (others => Tasks_And_Events.GPIOTE_Channel'Last);
+   type Pin_GPIOTE_Channels is array (Pin_Index) of Pin_GPIOTE_Channel;
+
+   Pins_GPIOTE_Channels : Pin_GPIOTE_Channels :=
+     (others => (Set => False, Chan => Tasks_And_Events.GPIOTE_Channel'Last));
 
    -- Just start top down
    Next_GPIIOTE_Channel : Tasks_And_Events.GPIOTE_Channel :=
@@ -52,7 +56,7 @@ package body Interrupts.GPIO is
       Pin.Configure_IO (GPIO_Config);
 
       -- Allocate channel so we can ack
-      Pin_GPIOTE_Channel (I) := Next_GPIIOTE_Channel;
+      Pins_GPIOTE_Channels (I) := (Set => True, Chan => Next_GPIIOTE_Channel);
 
       Tasks_And_Events.Enable_Event
         (Chan     => Next_GPIIOTE_Channel, GPIO_Pin => Pin.Pin,
@@ -92,7 +96,6 @@ package body Interrupts.GPIO is
                -- Update pulse with start timestamp and edge direction
                Pulses (I).Timestamp := Clock;
                Pulses (I).Edge      := edge;
-               Pulses (I).Duration  := Time_Span_Last;
             else
                -- End the pulse with a duration
                Pulses (I).Duration := Clock - Pulses (I).Timestamp;
@@ -111,19 +114,27 @@ package body Interrupts.GPIO is
 
          -- Loop through every GPIO pin in latch register
          for I in Pin_Index loop
-            -- Find the mask for checking if the pin has met it's sense critea
-            gpio_bit := Shift_Left (Unsigned_32 (1), Integer (I));
+            -- Ensure the channel is setup and it is an event for that channel otherwise
+            -- `Tasks_And_Events.Acknowledge_Channel_Interrupt` will raise
+            if Pins_GPIOTE_Channels (I).Set and
+              Tasks_And_Events.Channel_Event_Set
+                (Pins_GPIOTE_Channels (I).Chan)
+            then
+               -- Find the mask for checking if the pin has met it's sense critea
+               gpio_bit := Shift_Left (Unsigned_32 (1), Integer (I));
 
-            -- Check if bit for pin is set, and if so handle the edge
-            if (Unsigned_32 (latch_reg.Val) and gpio_bit) /= 0 then
+               -- Check if bit for pin is set, and if so handle the edge
+               if (Unsigned_32 (latch_reg.Val) and gpio_bit) /= 0 then
+                  -- Check if it ia high edge by reading the in register
+                  high :=
+                    (Unsigned_32 (GPIO_Periph.IN_k.Val) and gpio_bit) /= 0;
+
+                  Handle_Edge (I, high);
+               end if;
+
                -- Acknowledge the channel interrupt
                Tasks_And_Events.Acknowledge_Channel_Interrupt
-                 (Pin_GPIOTE_Channel (I));
-
-               -- Check if it ia high edge by reading the in register
-               high := (Unsigned_32 (GPIO_Periph.IN_k.Val) and gpio_bit) /= 0;
-
-               Handle_Edge (I, high);
+                 (Pins_GPIOTE_Channels (I).Chan);
             end if;
          end loop;
 
