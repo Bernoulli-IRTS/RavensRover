@@ -15,12 +15,14 @@ package body Tasks.Think is
          Obstacle := Is_Obstacle_Ahead;
 
          Act.Stop;
-         if Obstacle = Both or Obstacle = Left then
-            Act.Set_Rotation(1_024);
-         elsif Obstacle = Right then
-            Act.Set_Rotation(-1_024);
-         else
-            Act.Set_Forward(1_024);
+         if Sense.Is_Working then
+            if Obstacle = Both or Obstacle = Left then
+               Act.Set_Rotation(2_048);
+            elsif Obstacle = Right then
+               Act.Set_Rotation(-2_048);
+            else
+               Act.Set_Forward(2_048);
+            end if;
          end if;
 
          delay until Start + Milliseconds (10);
