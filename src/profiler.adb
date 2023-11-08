@@ -2,7 +2,7 @@ with Ada.Containers.Vectors;
 with MicroBit.Console; use MicroBit.Console;
 
 package body Profiler is
-   SubmitBufferSize : constant := 32;
+   SubmitBufferSize : constant := 16;
    type SubmitBufferIndex is mod SubmitBufferSize;
    type SubmitBufferArray is array (SubmitBufferIndex) of Trace;
    -- Ring buffer based queue
