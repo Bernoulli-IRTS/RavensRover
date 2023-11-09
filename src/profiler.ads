@@ -1,5 +1,6 @@
 with Ada.Real_Time;         use Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Priorities;
 
 package Profiler is
    type Trace is record
@@ -10,7 +11,7 @@ package Profiler is
 
 #if PROFILING
    task ProfilerFlush with
-     Priority => 1
+     Priority => Priorities.Profiling
    ;
 #end if;
 
