@@ -11,8 +11,13 @@ package body Tasks.Act is
    Forward_Speed  : Speed    := 0;
    Right_Speed    : Speed    := 0;
    Rotation_Speed : Speed    := 0;
+
+   -- Set the speeds as atomic to make it safe without protected objects
+   pragma Atomic (Forward_Speed);
+   pragma Atomic (Right_Speed);
+   pragma Atomic (Rotation_Speed);
 #if PROFILING
-   Trace          : Profiler.Trace;
+   Trace : Profiler.Trace;
 #end if;
 
    function Speed_To_Wheel (Speed : Integer) return DFR0548.Wheel is

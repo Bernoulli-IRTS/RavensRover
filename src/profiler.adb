@@ -14,6 +14,9 @@ package body Profiler is
    Head         : SubmitBufferIndex := SubmitBufferIndex'First;
    Tail         : SubmitBufferIndex := SubmitBufferIndex'First;
 
+   pragma Atomic (Head);
+   pragma Atomic (Tail);
+
    function StartTrace (Trace_Name : String) return Trace is
    begin
       return
