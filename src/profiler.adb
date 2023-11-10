@@ -1,3 +1,4 @@
+with Ada.Real_Time;    use Ada.Real_Time;
 with Ada.Containers.Vectors;
 with MicroBit.Console; use MicroBit.Console;
 
@@ -40,10 +41,13 @@ package body Profiler is
 
 #if PROFILING
    task body ProfilerFlush is
+      Start  : Time;
       Data   : Trace;
       Popped : Boolean := False;
    begin
       loop
+         Start := Clock;
+
          while Tail /= Head loop
             Data := SubmitBuffer (Head);
 
@@ -55,7 +59,7 @@ package body Profiler is
             Head := Head + 1;
          end loop;
 
-         delay 0.025;
+         delay until Start + Milliseconds (20);
       end loop;
    end ProfilerFlush;
 #end if;
