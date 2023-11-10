@@ -7,20 +7,26 @@ package body Drivers.HCSR04 is
    Previous_Index : Integer := Pins'First;
    Last_Trigger   : Time    := Time_First;
 
-   type DistancesArray is array (Pins'First .. Pins'Last) of HCSR04Distance;
-
-   -- Keep track of the pin pulse configurations
-   Distances   : DistancesArray := (others => HCSR04Distance'First);
    -- Keep track of if an echo failed during this loop
-   Failed_Loop : Boolean        := False;
+   Failed_Loop : Boolean := False;
    -- Sets true if there are successful readings through a reading cycle
-   Working     : Boolean        := False;
-   -- Don't fail the first one just because there is no previous trigger
-   First       : Boolean        := True;
+   Working     : Boolean := False;
+
+   pragma Atomic (Working);
 
    function Get_Distance (Sensor : SensorIndex) return HCSR04Distance is
+      -- Get pulse from protected InterruptHandler
+      Pulse    : Pin_Pulse :=
+        InterruptHandler.Get_Pulse (Pins (Integer (Sensor)).Echo_Pin);
+      Distance : Float;
    begin
-      return Distances (Integer (Sensor));
+      -- Calculate Distance from duration
+      Distance := Float (To_Duration (Pulse.Duration)) * (1_000_000.0 / 58.0);
+
+      -- Check if out of range or not
+      return
+        (if Distance > Float (HCSR04Distance'Last) then HCSR04Distance'Last
+         else HCSR04Distance (Distance));
    end Get_Distance;
 
    function Get_Working return Boolean is
@@ -33,7 +39,6 @@ package body Drivers.HCSR04 is
       -- Get the previous pulse
       Previous_Pulse : Pin_Pulse  :=
         InterruptHandler.Get_Pulse (Pins (Previous_Index).Echo_Pin);
-      Distance       : Float;
    begin
       -- Check if the last measurement succeeded by timestamp, duration and if the edge is the correct one
       if Last_Trigger > Previous_Pulse.Timestamp or
@@ -41,21 +46,8 @@ package body Drivers.HCSR04 is
         Previous_Pulse.Edge /= Pulse_Falling
       then
          -- Failed reading
-         Failed_Loop                := True;
-         Working                    := False;
-         Distances (Previous_Index) := 0.0;
-      else
-         -- Calculate distance in cm
-         Distance :=
-           Float (To_Duration (Previous_Pulse.Duration)) *
-           (1_000_000.0 / 58.0);
-
-         -- Update with new reading
-         if Distance > Float (HCSR04Distance'Last) then
-            Distances (Previous_Index) := HCSR04Distance'Last;
-         else
-            Distances (Previous_Index) := HCSR04Distance (Distance);
-         end if;
+         Failed_Loop := True;
+         Working     := False;
       end if;
 
       -- Trigger the trigger pin high
