@@ -1,5 +1,4 @@
 import argparse
-import io
 import json
 import serial
 
