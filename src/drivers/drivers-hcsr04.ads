@@ -9,8 +9,6 @@ package Drivers.HCSR04 is
 
    -- Get the distance reading from sensor
    function Get_Distance (Sensor : SensorIndex) return HCSR04Distance;
-   -- Get if all the sensors are currently working
-   function Get_Working return Boolean;
 
    -- Trigger the next sensor, should not be done more often than every 60ms
    -- Will block at least 10 us

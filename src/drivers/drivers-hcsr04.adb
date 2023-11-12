@@ -7,11 +7,8 @@ package body Drivers.HCSR04 is
    Previous_Index : Integer := Pins'First;
    Last_Trigger   : Time    := Time_First;
 
-   -- Keep track of if an echo failed during this loop
-   Failed_Loop : Boolean := False;
-   -- Sets true if there are successful readings through a reading cycle
-   Working     : Boolean := False;
-
+   type WorkingArray is array (SensorIndex) of Boolean;
+   Working : WorkingArray := (others => False);
    pragma Atomic (Working);
 
    function Get_Distance (Sensor : SensorIndex) return HCSR04Distance is
@@ -20,6 +17,13 @@ package body Drivers.HCSR04 is
         InterruptHandler.Get_Pulse (Pins (Integer (Sensor)).Echo_Pin);
       Distance : Float;
    begin
+      -- Throw exception if the sensor is not working
+      if not Working (Sensor) then
+         raise HCSR04_Sensor_Except
+           with "Erroring reading sensor at index: " &
+           SensorIndex'Image (Sensor);
+      end if;
+
       -- Calculate Distance from duration
       Distance := Float (To_Duration (Pulse.Duration)) * (1_000_000.0 / 58.0);
 
@@ -29,11 +33,6 @@ package body Drivers.HCSR04 is
          else HCSR04Distance (Distance));
    end Get_Distance;
 
-   function Get_Working return Boolean is
-   begin
-      return Working;
-   end Get_Working;
-
    procedure Trigger is
       Trigger_Pin    : GPIO_Point := Pins (Current_Index).Trigger_Pin;
       -- Get the previous pulse
@@ -41,14 +40,11 @@ package body Drivers.HCSR04 is
         InterruptHandler.Get_Pulse (Pins (Previous_Index).Echo_Pin);
    begin
       -- Check if the last measurement succeeded by timestamp, duration and if the edge is the correct one
-      if Last_Trigger > Previous_Pulse.Timestamp or
-        Previous_Pulse.Duration = Time_Span_Last or
-        Previous_Pulse.Edge /= Pulse_Falling
-      then
-         -- Failed reading
-         Failed_Loop := True;
-         Working     := False;
-      end if;
+      Working (SensorIndex (Previous_Index)) :=
+        not
+        (Last_Trigger > Previous_Pulse.Timestamp or
+         Previous_Pulse.Duration = Time_Span_Last or
+         Previous_Pulse.Edge /= Pulse_Falling);
 
       -- Trigger the trigger pin high
       Trigger_Pin.Set;
@@ -64,12 +60,6 @@ package body Drivers.HCSR04 is
       -- As there is no way to gurantee the array index range will be zero based mod is pretty much useless here
       Current_Index  :=
         (if Current_Index = Pins'Last then Pins'First else Current_Index + 1);
-
-      -- Reset failed loop if at start
-      if Current_Index = Pins'First then
-         Working     := not Failed_Loop;
-         Failed_Loop := False;
-      end if;
    end Trigger;
 
    -- Variables used for init

@@ -8,8 +8,6 @@ package Tasks.Sense is
    ;
 
    -- Utility functions for later stages to get data
-   -- Return if the sense task is working reliably, won't return true until first success cycle
-   function Is_Working return Boolean;
    -- Get front left distance
    function Get_Front_Left_Distance return HCSR04Distance;
    -- Get front right distance

@@ -40,11 +40,6 @@ package body Tasks.Sense is
       end loop;
    end Sense;
 
-   function Is_Working return Boolean is
-   begin
-      return HCSR04Sensor.Get_Working;
-   end Is_Working;
-
    function Get_Front_Right_Distance return HCSR04Distance is
    begin
       return HCSR04Sensor.Get_Distance (Front_Right_Index);

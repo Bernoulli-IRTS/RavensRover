@@ -19,11 +19,11 @@ package body Tasks.Think is
 #if PROFILING
          Trace := Profiler.StartTrace ("Think", Start);
 #end if;
+         -- Main block for thinking
+         begin
+            Obstacle := Is_Obstacle_Ahead;
 
-         Obstacle := Is_Obstacle_Ahead;
-
-         Act.Stop;
-         if Sense.Is_Working then
+            Act.Stop;
             if Obstacle = Both or Obstacle = Left then
                Act.Set_Rotation (2_048);
             elsif Obstacle = Right then
@@ -31,7 +31,11 @@ package body Tasks.Think is
             else
                Act.Set_Forward (2_048);
             end if;
-         end if;
+            -- Handle exceptions from HC-SR04 not reading
+         exception
+            when E : HCSR04_Sensor_Except =>
+               Act.Stop;
+         end;
 
 #if PROFILING
          Profiler.EndTrace (Trace);

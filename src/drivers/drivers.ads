@@ -11,4 +11,6 @@ package Drivers is
    type HCSR04Distance is new Float range 0.0 .. 400.0;
 
    type PinArray is array (Integer range <>) of GPIO_Point;
+
+   HCSR04_Sensor_Except : exception;
 end Drivers;
