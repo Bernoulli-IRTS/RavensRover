@@ -6,7 +6,7 @@ package Radio is
    for RadioKind use (Stop => 0, Move => 1, SetSpeaker => 2);
    RadioKindSize : constant := 1;
 
-   type MoveSpeed is new Integer_16 range -4_096 .. 4_096;
+   type MoveSpeed is new Integer_16 range -4_095 .. 4_095;
 
    type Movement is record
       Forward : MoveSpeed;

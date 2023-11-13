@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "gnat",
+			"taskKind": "buildProject",
+			"problemMatcher": [
+				"$ada"
+			],
+			"group": "build",
+			"label": "Build"
+		}
+	]
+}

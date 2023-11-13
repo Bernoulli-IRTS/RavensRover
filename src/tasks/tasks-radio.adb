@@ -97,8 +97,8 @@ package body Tasks.Radio is
                   Last_Msg := Start;
                end loop;
 
-               -- Automatically stop if no msg in 200ms (Safety)
-               if Start - Last_Msg > Milliseconds (200) then
+               -- Automatically stop if no msg in 100ms (Safety)
+               if Start - Last_Msg > Milliseconds (100) then
                   Act.Stop;
                end if;
             end if;
