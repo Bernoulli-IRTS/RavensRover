@@ -1,6 +1,7 @@
 with Ada.Real_Time; use Ada.Real_Time;
 with Drivers;       use Drivers;
 with Tasks.Act;
+with Tasks.Radio;
 with Profiler;
 
 package body Tasks.Think is
@@ -19,23 +20,26 @@ package body Tasks.Think is
 #if PROFILING
          Trace := Profiler.StartTrace ("Think", Start);
 #end if;
-         -- Main block for thinking
-         begin
-            Obstacle := Is_Obstacle_Ahead;
+         -- Skip is radio controlling is enabled
+         if not Radio.Is_Enabled then
+            -- Main block for thinking
+            begin
+               Obstacle := Is_Obstacle_Ahead;
 
-            Act.Stop;
-            if Obstacle = Both or Obstacle = Left then
-               Act.Set_Rotation (2_048);
-            elsif Obstacle = Right then
-               Act.Set_Rotation (-2_048);
-            else
-               Act.Set_Forward (2_048);
-            end if;
-            -- Handle exceptions from HC-SR04 not reading
-         exception
-            when E : HCSR04_Sensor_Except =>
                Act.Stop;
-         end;
+               if Obstacle = Both or Obstacle = Left then
+                  Act.Set_Rotation (2_048);
+               elsif Obstacle = Right then
+                  Act.Set_Rotation (-2_048);
+               else
+                  Act.Set_Forward (2_048);
+               end if;
+               -- Handle exceptions from HC-SR04 not reading
+            exception
+               when E : HCSR04_Sensor_Except =>
+                  Act.Stop;
+            end;
+         end if;
 
 #if PROFILING
          Profiler.EndTrace (Trace);

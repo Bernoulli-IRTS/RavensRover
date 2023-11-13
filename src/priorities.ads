@@ -8,7 +8,8 @@ package Priorities is
 #end if;
 
    -- Task priorities
-   Sense : constant := Base + 3;
-   Think : constant := Base + 2;
+   Sense : constant := Base + 4;
+   Think : constant := Base + 3;
+   Radio : constant := Base + 2;
    Act   : constant := Base + 1;
 end Priorities;
