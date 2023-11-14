@@ -14,14 +14,12 @@ package Radio is
       Rot     : MoveSpeed;
    end record;
    MovementSize : constant := 2 * 3;
-   pragma Pack (Movement);
 
    type SpeakerNote is record
       Pitch  : Unsigned_16;
       Volume : Unsigned_16;
    end record;
    SpeakerNoteSize : constant := 2 * 2;
-   pragma Pack (SpeakerNote);
 
    RadioFrequency : constant := 2_407;
    -- Static MicroBit radio header size (3 bytes)

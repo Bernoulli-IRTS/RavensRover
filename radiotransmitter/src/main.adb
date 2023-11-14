@@ -45,28 +45,36 @@ begin
 
             -- Calculate Forward from Z axis if over 80 (threshold)
             if abs Data.Z > 80 then
-               Forward := -Integer'Min (Integer (Data.Z) * 16, 4_095);
+               Forward :=
+                 -Integer'Max
+                   (Integer'Min (Integer (Data.Z) * 16, 4_095), -4_095);
             else
                Forward := 0;
             end if;
 
             -- Calculate Rotation from X axis if over 80 (threshold)
             if abs Data.X > 80 then
-               Rotation := -Integer'Min (Integer (Data.X) * 16, 4_095);
+               Rotation :=
+                 -Integer'Max
+                   (Integer'Min (Integer (Data.X) * 16, 4_095), -4_095);
             else
                Rotation := 0;
             end if;
 
             Controller.Transmit_Move
               (Packet, MoveSpeed (Forward),
-               -- If only A or B is held, move left/right
+            -- If only A or B is held, move left/right
+
                (if Button_A_Pressed /= Button_B_Pressed then
                   (if Button_B_Pressed then 2_048 else -2_048)
                 else 0),
                MoveSpeed (Rotation));
          end if;
 
-         delay until Start + Milliseconds (10);
+         -- Poll UART
+         Controller.Poll_UART (Packet);
+
+         delay until Start + Milliseconds (1);
       exception
          when others =>
             null; -- Ignore exceptions for now

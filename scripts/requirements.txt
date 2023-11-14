@@ -1,3 +1,5 @@
 numpy
 pandas
+pysdl2
+pysdl2-dll
 pyserial

@@ -43,6 +43,7 @@ package body Tasks.Radio is
       Kind : RadioKind with
         Import, Convention => Ada, Address => Packet.Payload (1)'Address;
    begin
+      -- Narrow down what data the payload contains
       case Kind is
          when Stop =>
             Act.Stop;
