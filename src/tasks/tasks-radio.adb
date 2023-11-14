@@ -50,7 +50,7 @@ package body Tasks.Radio is
          when Move =>
             HandleMove (Packet);
          when SetSpeaker =>
-            HandleMove (Packet);
+            HandleSetSpeaker (Packet);
 
             -- Ignore
          when others =>

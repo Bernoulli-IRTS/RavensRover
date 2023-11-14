@@ -12,7 +12,6 @@ with LSM303AGR; use LSM303AGR;
 procedure Main with
   Priority => 0
 is
-   Start        : Time;
    Button_A_Pin : constant := 5;
    -- Default packet
    Packet           : MicroBit.Radio.RadioData;
@@ -34,8 +33,6 @@ begin
 
    loop
       begin
-         Start := Clock;
-
          Button_A_Pressed := State (Button_A) = Pressed;
          Button_B_Pressed := State (Button_B) = Pressed;
 
@@ -73,8 +70,6 @@ begin
 
          -- Poll UART
          Controller.Poll_UART (Packet);
-
-         delay until Start + Milliseconds (1);
       exception
          when others =>
             null; -- Ignore exceptions for now
