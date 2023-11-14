@@ -35,5 +35,14 @@ jobs:
     - name: 'Upload Artifact'
       uses: actions/upload-artifact@v3
       with:
-        name: main-elf
+        name: RavensRover
         path: obj/main
+
+    - name: Build RadioTransmitter
+      run:  cd radiotransmitter && PATH="$PATH:/opt/gnat/bin" gprbuild -j0 -p
+
+    - name: 'Upload Artifact (RadioTransmitter)'
+      uses: actions/upload-artifact@v3
+      with:
+        name: RadioTransmitter
+        path: radiotransmitter/obj/main
