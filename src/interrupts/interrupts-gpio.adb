@@ -102,18 +102,10 @@ package body Interrupts.GPIO is
                Pulses (I).Edge     := edge;
             end if;
          end Handle_Edge;
-
-#if PROFILING
-         Trace : Profiler.Trace;
-#end if;
       begin
          -- Disable interrupt handler in ISR
          nRF.Events.Disable_Interrupt (nRF.Events.GPIOTE_PORT);
          nRF.Events.Clear (nRF.Events.GPIOTE_PORT);
-
-#if PROFILING
-         Trace := Profiler.StartTrace ("ISR-GPIO");
-#end if;
 
          -- Get a copy of the interrupt latch reg
          latch_reg         := GPIO_Periph.LATCH;
@@ -145,9 +137,6 @@ package body Interrupts.GPIO is
                  (Pins_GPIOTE_Channels (I).Chan);
             end if;
          end loop;
-#if PROFILING
-         Profiler.EndTrace (Trace);
-#end if;
          -- Clear events and re-enable interrupt as the ISR is done
          nRF.Events.Enable_Interrupt (nRF.Events.GPIOTE_PORT);
       end ISR;

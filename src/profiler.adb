@@ -1,4 +1,6 @@
 with Ada.Real_Time;    use Ada.Real_Time;
+with Ada.Strings;         use Ada.Strings;
+with Ada.Strings.Bounded;
 with Ada.Containers.Vectors;
 with MicroBit.Console; use MicroBit.Console;
 
@@ -9,7 +11,7 @@ package body Profiler is
    -- Ring buffer based queue
    SubmitBuffer : SubmitBufferArray :=
      (others =>
-        (Name => To_Unbounded_String (""), Start => Clock,
+        (Name => To_Bounded_String(""), Start => Clock,
          Dur  => Duration'First));
    Head         : SubmitBufferIndex := SubmitBufferIndex'First;
    Tail         : SubmitBufferIndex := SubmitBufferIndex'First;
@@ -20,15 +22,15 @@ package body Profiler is
    function StartTrace (Trace_Name : String) return Trace is
    begin
       return
-        (Name => To_Unbounded_String (Trace_Name), Start => Clock,
+        (Name => To_Bounded_String(Trace_Name), Start => Clock,
          Dur  => Duration'First);
    end StartTrace;
 
-   function StartTrace (Trace_Name : String; Trace_Start : Time) return Trace
+   function StartTrace (Trace_Name :  String; Trace_Start : Time) return Trace
    is
    begin
       return
-        (Name => To_Unbounded_String (Trace_Name), Start => Trace_Start,
+        (Name => To_Bounded_String(Trace_Name), Start => Trace_Start,
          Dur  => Duration'First);
    end StartTrace;
 
@@ -55,7 +57,7 @@ package body Profiler is
             Data := SubmitBuffer (Head);
 
             Put_Line
-              (ASCII.ENQ & To_String (Data.Name) & ASCII.NUL &
+              (ASCII.ENQ & To_String(Data.Name) & ASCII.NUL &
                Time'Image (Data.Start) & ASCII.NUL &
                Integer'Image (Integer (Float (Data.Dur) * 1_000_000.0)));
 
