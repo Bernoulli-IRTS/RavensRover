@@ -20,6 +20,7 @@ is
    Rotation         : Integer;
    Button_A_Pressed : Boolean;
    Button_B_Pressed : Boolean;
+   Last_Transmit    : Time := Clock;
 begin
    MicroBit.Radio.Setup
      (RadioFrequency => Radio.RadioFrequency, Length => Radio.Length,
@@ -36,7 +37,9 @@ begin
          Button_A_Pressed := State (Button_A) = Pressed;
          Button_B_Pressed := State (Button_B) = Pressed;
 
-         if Button_A_Pressed or Button_B_Pressed then
+         if (Button_A_Pressed or Button_B_Pressed) and
+           Clock - Last_Transmit > Milliseconds (10)
+         then
             -- Get accelerometer data
             Data := MicroBit.Accelerometer.AccelData;
 
@@ -66,6 +69,8 @@ begin
                   (if Button_B_Pressed then 2_048 else -2_048)
                 else 0),
                MoveSpeed (Rotation));
+
+            Last_Transmit := Clock;
          end if;
 
          -- Poll UART

@@ -21,7 +21,7 @@ if args.port is None:
 
 wanted_channel = int(args.channel) if args.channel is not None else None
 
-WAIT_TIME = 1 / 60
+WAIT_TIME = 1 / 200
 
 with serial.Serial(args.port, 115200, timeout=2) as ser:
     try:
@@ -36,14 +36,16 @@ with serial.Serial(args.port, 115200, timeout=2) as ser:
                 ser.write(b"\02\00\00\00\00\00\00")
                 ser.flush()
                 time.sleep(WAIT_TIME)
-            elif msg.type == "note_on" and (
-                wanted_channel is None or msg.channel == wanted_channel
+            elif (
+                msg.type == "note_on"
+                and (wanted_channel is None or msg.channel == wanted_channel)
+                and msg.velocity != 0
             ):
                 # Convert midi freq
                 a = 440
                 freq = int((a / 32) * (2 ** ((msg.note - 9) / 12)))
 
-                volume = 10
+                volume = 10 + msg.velocity * 3
                 ser.write(
                     b"\02"
                     + freq.to_bytes(2, "little")

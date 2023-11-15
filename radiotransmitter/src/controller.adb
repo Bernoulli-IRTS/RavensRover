@@ -27,7 +27,7 @@ package body Controller is
       for B of Buffer loop
          while UART.Periph.EVENTS_RXDRDY = 0 loop
             -- Handle timeout
-            if I mod 100 = 0 and Clock - Start > Milliseconds (10) then
+            if I mod 100 = 0 and Clock - Start > Milliseconds (5) then
                return;
             end if;
 
