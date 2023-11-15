@@ -121,4 +121,8 @@ package body Tasks.Radio is
    begin
       return Enabled;
    end Is_Enabled;
+
+   procedure Toggle is begin
+      Enabled := not Enabled;
+   end Toggle;
 end Tasks.Radio;

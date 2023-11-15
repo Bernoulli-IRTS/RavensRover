@@ -6,4 +6,6 @@ package Tasks.Radio is
    ;
 
    function Is_Enabled return Boolean;
+
+   procedure Toggle;
 end Tasks.Radio;
