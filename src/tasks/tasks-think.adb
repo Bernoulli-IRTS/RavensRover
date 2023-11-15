@@ -7,10 +7,12 @@ with Profiler;
 package body Tasks.Think is
 
    task body Think is
-      Start    : Time := Clock;
-      Obstacle : Where_Obstacle;
+      Last_Obstacle_Time : Time := Clock;
+      Start              : Time := Clock;
+      Obstacle           : Where_Obstacle;
+      Last_Obstacle      : Where_Obstacle;
 #if PROFILING
-      Trace    : Profiler.Trace;
+      Trace              : Profiler.Trace;
 #end if;
    begin
       loop
@@ -24,15 +26,23 @@ package body Tasks.Think is
             begin
                Obstacle := Is_Obstacle_Ahead;
 
+               -- Keep track of last obstacle
+               if Obstacle /= None then
+                  Last_Obstacle := Obstacle;
+                  Last_Obstacle_Time := Clock;
+               end if;
+
                Act.Stop;
-               if Obstacle = Both or Obstacle = Left then
-                  Act.Set_Rotation (2_048);
-               elsif Obstacle = Right then
-                  Act.Set_Rotation (-2_048);
+               if Clock - Last_Obstacle_Time < Milliseconds(400) then
+                  if Last_Obstacle = Both or Last_Obstacle = Left then
+                     Act.Set_Rotation (2_048);
+                  elsif Last_Obstacle = Right then
+                     Act.Set_Rotation (-2_048);
+                  end if;
                else
                   Act.Set_Forward (2_048);
                end if;
-               -- Handle exceptions from HC-SR04 not reading
+            -- Handle exceptions from HC-SR04 not reading
             exception
                when E : HCSR04_Sensor_Except =>
                   Act.Stop;
@@ -53,11 +63,11 @@ package body Tasks.Think is
       Right_Sensor : HCSR04Distance := Sense.Get_Front_Right_Distance;
    begin
       -- Returns enumerator type according to what the sensor reads
-      if Left_Sensor < 10.0 and Right_Sensor < 10.0 then
+      if Left_Sensor < 20.0 and Right_Sensor < 20.0 then
          return Both;
-      elsif Left_Sensor < 10.0 then
+      elsif Left_Sensor < 20.0 then
          return Left;
-      elsif Right_Sensor < 10.0 then
+      elsif Right_Sensor < 20.0 then
          return Right;
       end if;
       return None;
