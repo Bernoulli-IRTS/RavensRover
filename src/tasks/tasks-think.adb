@@ -13,14 +13,12 @@ package body Tasks.Think is
       Trace    : Profiler.Trace;
 #end if;
    begin
-      -- Initial delay, seems to decrease the chance of triggering overcurrent
-      delay (1.0);
       loop
          Start := Clock;
 #if PROFILING
          Trace := Profiler.StartTrace ("Think", Start);
 #end if;
-         -- Skip is radio controlling is enabled
+         -- Skip if radio controlling is enabled
          if not Radio.Is_Enabled then
             -- Main block for thinking
             begin

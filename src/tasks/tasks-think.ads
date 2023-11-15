@@ -9,7 +9,7 @@ package Tasks.Think is
 
    -- Enumerator type for where an obstacle is located
    type Where_Obstacle is (Both, Left, Right, None);
-   -- Returns true if distance < 10cm, else false
+   -- Returns enumerator type Where_Obstacle
    function Is_Obstacle_Ahead return Where_Obstacle;
 
 end Tasks.Think;
