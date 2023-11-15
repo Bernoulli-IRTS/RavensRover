@@ -2,6 +2,7 @@ import argparse
 import ctypes
 from sdl2 import *
 import serial
+import serial.tools.list_ports
 import time
 
 parser = argparse.ArgumentParser(
@@ -9,14 +10,17 @@ parser = argparse.ArgumentParser(
     description="Send controls to the RavensRover Radio transmitter over UART",
 )
 
-parser.add_argument("serial_port")
+parser.add_argument("--port", required=False, default=None)
 
 args = parser.parse_args()
+
+if args.port is None:
+    args.port = serial.tools.list_ports.comports()[-1].device
 
 # Init SDL for joystick input
 SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK)
 
-with serial.Serial(args.serial_port, 115200, timeout=2) as ser:
+with serial.Serial(args.port, 115200, timeout=2) as ser:
     try:
         device = None
         axises = {}
@@ -75,8 +79,10 @@ with serial.Serial(args.serial_port, 115200, timeout=2) as ser:
                 + right.to_bytes(2, "little", signed=True)
                 + rotation.to_bytes(2, "little", signed=True)
             )
+            ser.flush()
 
             time.sleep(1 / 30)
     except KeyboardInterrupt:
         # Stop move
         ser.write(b"\01\00\00\00\00\00\00")
+        ser.flush()

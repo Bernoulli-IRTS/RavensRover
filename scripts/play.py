@@ -21,7 +21,7 @@ if args.port is None:
 
 wanted_channel = int(args.channel) if args.channel is not None else None
 
-WAIT_TIME = 1 / 180
+WAIT_TIME = 1 / 60
 
 with serial.Serial(args.port, 115200, timeout=2) as ser:
     try:
@@ -34,6 +34,7 @@ with serial.Serial(args.port, 115200, timeout=2) as ser:
             if msg.type == "note_off" and msg.channel == channel:
                 channel = None
                 ser.write(b"\02\00\00\00\00\00\00")
+                ser.flush()
                 time.sleep(WAIT_TIME)
             elif msg.type == "note_on" and (
                 wanted_channel is None or msg.channel == wanted_channel
@@ -49,6 +50,7 @@ with serial.Serial(args.port, 115200, timeout=2) as ser:
                     + volume.to_bytes(2, "little")
                     + b"\00\00"
                 )
+                ser.flush()
                 channel = msg.channel
                 last_note = t
                 time.sleep(WAIT_TIME)
@@ -59,3 +61,4 @@ with serial.Serial(args.port, 115200, timeout=2) as ser:
         # Stop tone
         time.sleep(WAIT_TIME * 2)
         ser.write(b"\02\00\00\00\00\00\00")
+        ser.flush()
