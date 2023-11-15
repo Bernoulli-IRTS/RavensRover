@@ -34,6 +34,7 @@ package body Controller is
             I := I + 1;
          end loop;
 
+         Start := Clock;
          B := UART.Periph.RXD.RXD;
 
          UART.Periph.EVENTS_RXDRDY := 0;

@@ -7,7 +7,7 @@ with Profiler;
 package body Tasks.Act is
    MotorDriver    : DFR0548.MotorDriver (MicroBit.I2C.ControllerExt);
    Speed_Max      : constant := Integer (Speed'Last);
-   Motor_Step     : constant := 100;
+   Motor_Step     : constant := 250;
    Forward_Speed  : Speed    := 0;
    Right_Speed    : Speed    := 0;
    Rotation_Speed : Speed    := 0;
