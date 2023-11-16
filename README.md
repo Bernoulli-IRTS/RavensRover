@@ -1,5 +1,58 @@
 # RavensRover
 
+<center>
+<img src="assets/images/car.jpg" alt="Our car" width="450"/>
+<i>Our mecanum car build</i>
+</center>
+
+## Introduction
+
+RavensRover is a group project within the Intelligent Real-Time Systems course at USN Kongsberg implementing a hard real-time system using Ada running on a Micro:bit v2.
+
+Our project has two distinct modes of operation: radio controlled and autonomous.
+
+## Modes of operation
+
+The mode of the system is switched by pressing the A button, it will default to radio controlled when reset.
+
+### Radio controlled
+
+Using a seperate radio transmitter (Running on another Micro:bit v2) see `radiotransmitter/`, commands can be transmitted wireless to control the movement and speaker of the car.
+
+The radio transmitter itself can control the movement by using the A and B buttons and the accelerometer. Holding both A and B will make the accelerometer control forward/backwards and rotation. Holding only A will make the robot strafe left with the accelerometer control still enabled. Same with B only strafing right instead.
+
+Using scripts like `scripts/controller.py` for gamepad control and `scripts/play.py` for transmitting midi notes the transmitter is controlled by a computer over Serial/UART.
+
+The car will automatically stop moving after 100ms since last radio move command was received, see `src/tasks/tasks-radio.adb` for implementation.
+
+### Autonomous
+
+In autonomous operation the car will move forwards and dodge obstacles using its sensors. Should a sensor fail, from reasons like being blocked the car will stop. See `src/tasks/tasks-think.adb` for implementation.
+
+## Profiling
+
+The project has conditional preprocessor-based profiling for all tasks using the `-gnateDPROFILING` compiler switch in `RavensRover.gpr`, setting it to true will make start and duration of all tasks get printed to the serial output.
+
+This can be combined with the `scripts/profiler.py` script to generate traces compatible with the Google trace-viewer.
+
+<center>
+<img src="assets/images/profiling.png" alt="Trace-viewer in action"/>
+<i>The first second of operation visualised</i>
+</center>
+
+## Hardware setup
+### DFR0548 motor driver
+Connected to all motors and functions as breakout board. With the following motor mapping:
+- M1: Left-back
+- M2: Left-front
+- M3: Right-back
+- M4: Right-front
+
+### Dual HC-SR04 ultrasonic sensors
+Mounted in front using our custom [RoverMount](https://github.com/Bernoulli-IRTS/RoverMount) the sensors are connected to the following pins in addition to the 5V VIN and GND.
+- Front right: Echo=P0, Trigger=P2
+- Front left: Echo=P1, Trigger=P13
+
 ## Project setup
 NOTE: On Windows longpaths in git may need to be enabled `git config --system core.longpaths true` and enabling [Win32 longpaths](https://www.thewindowsclub.com/how-to-enable-or-disable-win32-long-paths-in-windows-11-10).
 
